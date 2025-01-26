@@ -15,7 +15,7 @@ export default function Home() {
 
   const languages = ["English", "Amharic"];
 
-  const handleTranslate = async (e) => {
+  const handleTranslate = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setIsLoading(true);
 
