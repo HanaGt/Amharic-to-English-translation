@@ -1,101 +1,160 @@
+"use client";
+import { useState } from "react";
+import axios from "axios";
 import Image from "next/image";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [fromDropdown, setFromDropdown] = useState(false);
+  const [toDropdown, setToDropdown] = useState(false);
+  const [fromLanguage, setFromLanguage] = useState("English");
+  const [toLanguage, setToLanguage] = useState("Amharic");
+  const [inputText, setInputText] = useState("");
+  const [translatedText, setTranslatedText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const languages = ["English", "Amharic"];
+
+  const handleTranslate = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post("/api/translate", {
+        fromLanguage,
+        toLanguage,
+        text: inputText,
+      });
+
+      setTranslatedText(response.data.translatedText); 
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred during translation.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800">
+      <header className="flex justify-between items-center p-4 max-w-7xl mx-auto">
+        <div className="text-teal-600 font-extrabold text-3xl">Translate</div>
+        <div className="space-x-6">
+          <button className="text-teal-600 hover:text-teal-800 font-medium">Log in</button>
+          <button className="bg-teal-600 text-white px-6 py-3 rounded-full hover:bg-teal-700 transition">Sign up</button>
+        </div>
+      </header>
+
+      <main className="flex flex-col md:flex-row items-center justify-between px-8 md:px-16 lg:px-24 py-10">
+        <div className="max-w-lg space-y-6">
+          <h1 className="text-4xl md:text-5xl font-semibold text-center leading-tight">
+            Get A Quick, Elegant <span className="text-teal-600">Translation</span>
+          </h1>
+          <form className="space-y-6" onSubmit={handleTranslate}>
+            <div className="relative">
+              <label className="text-lg font-medium block mb-2">From:</label>
+              <div
+                className="flex items-center justify-between border border-teal-400 rounded-full px-6 py-3 cursor-pointer bg-white shadow-sm hover:shadow-md transition"
+                onClick={() => setFromDropdown(!fromDropdown)}
+              >
+                <span>{fromLanguage}</span>
+                {fromDropdown ? (
+                  <ChevronUp className="text-teal-600" size={20} />
+                ) : (
+                  <ChevronDown className="text-teal-600" size={20} />
+                )}
+              </div>
+              {fromDropdown && (
+                <div className="absolute bg-white border border-teal-400 rounded-lg mt-2 w-full z-10 shadow-md">
+                  {languages.map((lang) => (
+                    <div
+                      key={lang}
+                      onClick={() => {
+                        setFromLanguage(lang);
+                        setFromDropdown(false);
+                      }}
+                      className={`px-6 py-3 hover:bg-teal-50 cursor-pointer ${
+                        fromLanguage === lang ? "bg-teal-100 font-semibold" : ""
+                      }`}
+                    >
+                      {lang}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Enter your text here"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="w-full border border-teal-400 rounded-full px-6 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+              />
+            </div>
+
+            <div className="relative">
+              <label className="text-lg font-medium block mb-2">To:</label>
+              <div
+                className="flex items-center justify-between border border-teal-400 rounded-full px-6 py-3 cursor-pointer bg-white shadow-sm hover:shadow-md transition"
+                onClick={() => setToDropdown(!toDropdown)}
+              >
+                <span>{toLanguage}</span>
+                {toDropdown ? (
+                  <ChevronUp className="text-teal-600" size={20} />
+                ) : (
+                  <ChevronDown className="text-teal-600" size={20} />
+                )}
+              </div>
+              {toDropdown && (
+                <div className="absolute bg-white border border-teal-400 rounded-lg mt-2 w-full z-10 shadow-md">
+                  {languages.map((lang) => (
+                    <div
+                      key={lang}
+                      onClick={() => {
+                        setToLanguage(lang);
+                        setToDropdown(false);
+                      }}
+                      className={`px-6 py-3 hover:bg-teal-50 cursor-pointer ${
+                        toLanguage === lang ? "bg-teal-100 font-semibold" : ""
+                      }`}
+                    >
+                      {lang}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="flex items-center justify-center bg-teal-600 text-white w-full py-4 rounded-full hover:bg-teal-700 transition"
+              disabled={isLoading}
+            >
+              {isLoading ? "Translating..." : "Translate"}
+            </button>
+          </form>
+
+          {translatedText && (
+            <div className="mt-6 bg-teal-50 p-6 rounded-lg shadow-md">
+              <h2 className="text-lg font-semibold text-teal-600 mb-2">Translated Text:</h2>
+              <p>{translatedText}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Section */}
+        <div className="mt-10 md:mt-0">
+          <Image
+            src="/illustration1.png"
+            alt="Illustration"
+            width={600}
+            height={600}
+            className=""
+          />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
