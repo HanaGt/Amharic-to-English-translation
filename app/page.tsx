@@ -7,33 +7,43 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 export default function Home() {
   const [fromDropdown, setFromDropdown] = useState(false);
   const [toDropdown, setToDropdown] = useState(false);
-  const [fromLanguage, setFromLanguage] = useState("English");
-  const [toLanguage, setToLanguage] = useState("Amharic");
+  const [fromLanguage, setFromLanguage] = useState("Amharic");
+  const [toLanguage, setToLanguage] = useState("English");
   const [inputText, setInputText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const languages = ["English", "Amharic"];
 
-  const handleTranslate = async (e: { preventDefault: () => void; }) => {
+  const handleTranslate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
-      const response = await axios.post("/api/translate", {
-        fromLanguage,
-        toLanguage,
+      // Build the request payload dynamically based on selected languages
+      const requestPayload = {
         text: inputText,
-      });
-
-      setTranslatedText(response.data.translatedText); 
+        to: toLanguage === "English" ? "en" : "am",
+      };
+  
+      const response = await axios.post(
+        "https://amh-to-eng-translation-go.onrender.com/translate",
+        requestPayload
+      );
+  
+      if (response.data.status) {
+        setTranslatedText(response.data.translatedText);
+      } else {
+        alert("Translation failed: " + response.data.message);
+      }
     } catch (error) {
       console.error(error);
-      alert("An error occurred during translation.");
+      alert("An error occurred during translation. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800">
@@ -51,6 +61,7 @@ export default function Home() {
             Get A Quick, Elegant <span className="text-teal-600">Translation</span>
           </h1>
           <form className="space-y-6" onSubmit={handleTranslate}>
+            {/* From Dropdown */}
             <div className="relative">
               <label className="text-lg font-medium block mb-2">From:</label>
               <div
@@ -84,6 +95,7 @@ export default function Home() {
               )}
             </div>
 
+            {/* Input Text */}
             <div>
               <input
                 type="text"
@@ -94,6 +106,7 @@ export default function Home() {
               />
             </div>
 
+            {/* To Dropdown */}
             <div className="relative">
               <label className="text-lg font-medium block mb-2">To:</label>
               <div
@@ -127,6 +140,7 @@ export default function Home() {
               )}
             </div>
 
+            {/* Translate Button */}
             <button
               type="submit"
               className="flex items-center justify-center bg-teal-600 text-white w-full py-4 rounded-full hover:bg-teal-700 transition"
@@ -136,6 +150,7 @@ export default function Home() {
             </button>
           </form>
 
+          {/* Translated Text */}
           {translatedText && (
             <div className="mt-6 bg-teal-50 p-6 rounded-lg shadow-md">
               <h2 className="text-lg font-semibold text-teal-600 mb-2">Translated Text:</h2>
@@ -144,7 +159,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Right Section */}
         <div className="mt-10 md:mt-0">
           <Image
             src="/illustration1.png"
